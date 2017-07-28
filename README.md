@@ -10,3 +10,4 @@ Wireless keyboard via WiFI connection (yep, you can play the game by using compu
 About *.3ps files:<br>
 you can use *.3ps files and 3dstool (https://github.com/dnasdw/3dstool) to patch roms, it's very useful :)<br>
 usage : 3dstool --patch -vf input.bin --patch-file patch.3ps<br>
+* Do not forget use ndstool to fix the crc16 after you patch the rom. (ndstool -f "your rom")
