@@ -1,0 +1,6 @@
+_PXI_SendWordByFifo = 0x209CE71;
+_PXI_SetFifoRecvCallback = 0x209CE01;
+_OS_Sleep = 0x209B645;
+_backupGetBuffer = 0x201A4C1;
+memset = 0x1FF9F44;
+__entry = 0x2130C20;
