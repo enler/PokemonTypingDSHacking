@@ -4,12 +4,7 @@
 #define MAKE_BRANCH_T_L(src, dest) (((((s32)(dest) - 4 - (s32)(src)) >> 12) & 0x7FF) | 0xF000)
 #define MAKE_BRANCH_T_H(src, dest) (((((s32)(dest) - 4 - (s32)(src)) >> 1) & 0x7FF) | 0xF800)
 
-u32 backupSharedMem[96 / 4] = {0, 0x1101, 0, 0,
-								0, 0,  0x20000, 0x100,
-								0, 0x100, 3, 5,
-								0, 0, 0, 0,
-								0, 0, 0, 0,
-								0, 0, 0xFFFF, 0};
+u32 backupSharedMem[96 / 4] = {0, 0x1101, 0, 0, 0, 0, 0x20000, 0x100, 0, 0x100, 3, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFFFF, 0};
 
 int backupCtxHandler = 0x20C7D3C;
 int backupLength = 0xFD8;
@@ -32,6 +27,7 @@ static inline bool sendBackupFifo(u32 data) {
 void initBackup() {
 	requestFlag = 0;
 	while(!sendBackupFifo(0));
+	DC_FlushRange(&backupSharedMem, sizeof(backupSharedMem));
 	while(!sendBackupFifo((u32)&backupSharedMem));
 	do OS_Sleep(100); while(!requestFlag);
 	requestFlag = 0;
@@ -45,9 +41,11 @@ u32 readBackup() {
 	u8 * backupCtx = (u8*)(*(u32*)backupCtxHandler);
 	for (int i = 0; i < 4; i++) {
 		void * buf = backupGetBuffer(backupCtx + i * 120 + 12, 0);
+		DC_FlushRange(buf, backupLength);
 		backupSharedMem[3] = i << 12;
 		backupSharedMem[4] = (int)buf;
 		backupSharedMem[5] = backupLength;
+		DC_FlushRange(&backupSharedMem, sizeof(backupSharedMem));
 		requestFlag = 0;
 		while(!sendBackupFifo(6));
 		do OS_Sleep(100); while(!requestFlag);
@@ -63,9 +61,11 @@ void writeBackup() {
 	backupSharedMem[3] = (int)buf;
 	backupSharedMem[4] = slot << 12;
 	backupSharedMem[5] = backupLength;
+	DC_FlushRange(&backupSharedMem, sizeof(backupSharedMem));
 	requestFlag = 0;
 	while(!sendBackupFifo(7));
 	do OS_Sleep(100); while(!requestFlag);
+	DC_InvalidateRange(&buf, backupLength);
 }
 
 int main() {

@@ -3,4 +3,6 @@ _PXI_SetFifoRecvCallback = 0x209CE01;
 _OS_Sleep = 0x209B645;
 _backupGetBuffer = 0x201A4C1;
 memset = 0x1FF9F44;
+DC_FlushRange = 0x0209BBCC;
+DC_InvalidateRange = 0x0209BB94;
 __entry = 0x2130C20;

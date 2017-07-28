@@ -6,3 +6,6 @@ void PXI_SetFifoRecvCallback(int fifotag, PXIFifoCallback callback);
 void* backupGetBuffer(void* ctx, int a1);
 void OS_Sleep(u32 msec);
 void jmp_writeBackup();
+
+void DC_FlushRange(void * ptr, u32 size);
+void DC_InvalidateRange(void * ptr, u32 size);
