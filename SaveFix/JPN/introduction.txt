@@ -7,5 +7,5 @@
 0x00004BB2 : 00 F0 75 -> FF F7 98
 0x001412A7 : 00 FF FF FF FF FF FF FF FF FF -> 08 61 72 6D 39 2E 62 69 6E 00
 0x00157010 : FF FF FF FF FF FF FF FF -> 00 C0 A0 07 44 C2 A0 07 (note: it defines the start offset and end offset of arm9.bin)
-0x07A0C00 : write arm9.bin
+0x07A0C000 : write arm9.bin
 3. use ndstool to fix the crc16 checksum of the modified rom (ndstool -f "your rom")
