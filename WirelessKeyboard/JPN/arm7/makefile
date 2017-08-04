@@ -1,5 +1,5 @@
 ifeq ($(strip $(DEVKITARM)),)
-$(error "«ÎΩ´DEVKITARMÃÌº”µΩª∑æ≥±‰¡ø")
+$(error "ËØ∑Â∞ÜDEVKITARMÊ∑ªÂä†Âà∞ÁéØÂ¢ÉÂèòÈáè")
 endif
 
 PREFIX = $(DEVKITARM)/bin/arm-none-eabi-
@@ -11,33 +11,36 @@ OBJDUMP = $(PREFIX)objdump
 
 INCLUDE = $(DEVKITPRO)/libnds/include
 
+SOURCE	:=	source
+LIBS	:=	-L../../lib -ldswifi7
+
 # define options for compilation
-CFLAGS = -std=c99 -Wall -Os -march=armv5te -mtune=arm946e-s -D=JPN -mthumb -mthumb-interwork -fomit-frame-pointer -ffast-math -I $(INCLUDE)
+CFLAGS = -I $(SOURCE) -I $(INCLUDE) -std=c99 -Wall -O2 -mtune=arm7tdmi -fomit-frame-pointer -ffast-math
 
 # define options for linkage. Prevent the inclusion of standard start
 # code and libraries.
-LDFLAGS = -T symbol.sym -T linker.ld -nostartfiles -Wl,--gc-sections,--use-blx
+LDFLAGS = -T $(CURDIR)/symbol.sym -T $(CURDIR)/linker.ld -nostartfiles
 
 
 # define options for the objdump
 DUMPFLAGS = -xdsS
 
 # use variables to refer to init code in case it changes
-OBJS = arm9.o entry.o
+OBJS = $(SOURCE)/arm7.o $(SOURCE)/entry.o $(SOURCE)/hook.o
 
 #
 # define build targets
 #
-all: arm9.bin
+all: arm7.bin
 
 clean:
-	rm -f *.o *.elf *.bin *.dump
+	rm -f *.o *.elf *.bin *.dump $(SOURCE)/*.o
 
 
 # build s-record with init code and c files linked together
-arm9.bin: $(OBJS)
-	$(LD) $(LDFLAGS) -o arm9.elf $(OBJS)
-	$(OBJCOPY) -O binary arm9.elf arm9.bin
+arm7.bin: $(OBJS)
+	$(LD) $(LDFLAGS) -o arm7.elf $(OBJS) $(LIBS)
+	$(OBJCOPY) -O binary arm7.elf arm7.bin
 
 # handle compilation of C files
 %.o:%.S

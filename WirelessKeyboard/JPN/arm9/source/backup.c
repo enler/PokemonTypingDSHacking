@@ -1,19 +1,16 @@
 #include "nds/ndstypes.h"
-#include "arm9.h"
-
-#ifdef JPN
-
-const u8** backupCtxRef = (u8**)0x20C7D3C;
-const int readBackupHookOffset = 0x2004CDC;
-const int writeBackupHookOffset = 0x201953C;
-
-#endif
+#include "common.h"
 
 #define MAKE_BRANCH_T_L(src, dest) (((((s32)(dest) - 4 - (s32)(src)) >> 12) & 0x7FF) | 0xF000)
 #define MAKE_BRANCH_T_H(src, dest) (((((s32)(dest) - 4 - (s32)(src)) >> 1) & 0x7FF) | 0xF800)
 
+void writeBackup();
+u32 readBackup();
+
 u32 backupSharedMem[96 / 4] = {0, 0x1101, 0, 0, 0, 0, 0x20000, 0x100, 0, 0x100, 3, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFFFF, 0};
+
 int backupLength = 0xFD8;
+
 int requestFlag = 0;
 
 void onFifoRecv(int tag, u32 data, bool err)
@@ -30,6 +27,11 @@ static inline bool sendBackupFifo(u32 data) {
 }
 
 void initBackup() {
+	*(u16*)readBackupHookOffset = (u16)MAKE_BRANCH_T_L(readBackupHookOffset, readBackup);
+	*(u16*)(readBackupHookOffset + 2) = (u16)MAKE_BRANCH_T_H(readBackupHookOffset, readBackup);
+	*(u16*)writeBackupHookOffset = (u16)MAKE_BRANCH_T_L(writeBackupHookOffset, jmp_writeBackup);
+	*(u16*)(writeBackupHookOffset + 2) = (u16)MAKE_BRANCH_T_H(writeBackupHookOffset, jmp_writeBackup);
+	PXI_SetFifoRecvCallback(11, onFifoRecv);
 	requestFlag = 0;
 	while(!sendBackupFifo(0));
 	DC_FlushRange(&backupSharedMem, sizeof(backupSharedMem));
@@ -71,14 +73,4 @@ void writeBackup() {
 	while(!sendBackupFifo(7));
 	do OS_Sleep(100); while(!requestFlag);
 	DC_InvalidateRange(&buf, backupLength);
-}
-
-int main() {
-	*(u16*)readBackupHookOffset = (u16)MAKE_BRANCH_T_L(readBackupHookOffset, readBackup);
-	*(u16*)(readBackupHookOffset + 2) = (u16)MAKE_BRANCH_T_H(readBackupHookOffset, readBackup);
-	*(u16*)writeBackupHookOffset = (u16)MAKE_BRANCH_T_L(writeBackupHookOffset, jmp_writeBackup);
-	*(u16*)(writeBackupHookOffset + 2) = (u16)MAKE_BRANCH_T_H(writeBackupHookOffset, jmp_writeBackup);
-	PXI_SetFifoRecvCallback(11, onFifoRecv);
-	initBackup();
-	return 0;
 }

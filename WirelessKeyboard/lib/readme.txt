@@ -1,0 +1,1 @@
+build the modifed dswifi library(https://github.com/enler/dswifi) and copy libdswifi7.a and libdswifi9.a to this folder

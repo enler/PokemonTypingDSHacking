@@ -5,7 +5,8 @@ some research were from RetroGameFan (link: https://gbatemp.net/threads/retrogam
 
 Working In Process:<br>
 save fixing of EUS version<br>
-Wireless keyboard via WiFI connection (yep, you can play the game by using computer keyboard and other smart device such like iPad)<br>
+Wireless keyboard via WiFI connection (yep, you can play the game by using computer keyboard and other smart device such like iPad), <br>
+It requires a special dswifi library (https://github.com/enler/dswifi)<br>
 
 About *.3ps files:<br>
 you can use *.3ps files and 3dstool (https://github.com/dnasdw/3dstool) to patch roms, it's very useful :)<br>
