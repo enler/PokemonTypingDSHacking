@@ -17,10 +17,10 @@ def recvBuffer(sz, packetsz, packectr):
 	while True:
 		try:
 			data, addr = s.recvfrom(16 + packetsz)
-			magic, tmp_seqNo, buf = struct.unpack(packetfmt, data)
+			magic, tmp_index, buf = struct.unpack(packetfmt, data)
 			# print "magic", magic
-			# print "seq no", tmp_seqNo
-			packets[tmp_seqNo] = buf
+			# print "seq no", tmp_index
+			packets[tmp_index] = buf
 			# print repr(buf)
 		except socket.timeout, e:
 			print e
@@ -28,23 +28,27 @@ def recvBuffer(sz, packetsz, packectr):
 	print "retry"
 	for index in range(0, packectr):
 		if packets[index] == False:
-			msg = struct.pack("5i12x", 0, 4, seqNo, 0, index)
 			print "missing packet id", index
-			s.sendto(msg, address)
 			for i in range(0, 4):
+				msg = struct.pack("5i12x", 0, 4, seqNo, 0, index)
+				s.sendto(msg, address)
+				seqNo = seqNo + 1
 				try:
 					data, addr = s.recvfrom(16 + packetsz)
-					magic, tmp_seqNo, buf = struct.unpack(packetfmt, data)
-					packets[tmp_seqNo] = buf
+					magic, tmp_index, buf = struct.unpack(packetfmt, data)
+					if tmp_index != index:
+						continue
+					packets[tmp_index] = buf
 					# print repr(buf)
 					break
 				except socket.timeout, e:
 					print e
 					continue
-	msg = struct.pack("4i16x", 0, 5, 0, 0)
 	s.settimeout(0.1)
 	for i in range(0, 4):
+		msg = struct.pack("4i16x", 0, 5, seqNo, 0)
 		s.sendto(msg, address)
+		seqNo = seqNo + 1
 		try:
 			msg, addr = s.recvfrom(32)
 			break
@@ -108,8 +112,6 @@ def onKeyboardEvent(event):
 			msg, addr = s.recvfrom(32)
 		except socket.timeout, e:
 			print "ack packet lose"
-			msg = struct.pack("4i16x", 0, 5, 0, 0)
-			s.sendto(msg, address)
 	elif spKeyDic.has_key(event.KeyID):
 		keyValue = spKeyDic[event.KeyID]
 		msg = struct.pack("4iH14x", 0, 2, seqNo, 0, keyValue)
@@ -120,8 +122,6 @@ def onKeyboardEvent(event):
 			msg, addr = s.recvfrom(32)
 		except socket.timeout, e:
 			print "ack packet lose"
-			msg = struct.pack("4i16x", 0, 5, 0, 0)
-			s.sendto(msg, address)
 	elif event.KeyID == 44:
 		msg = struct.pack("4i16x", 0, 3, seqNo, 0)
 		# print repr(msg)
