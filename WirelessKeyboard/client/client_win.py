@@ -11,6 +11,7 @@ import png
 seqNo = 0
 
 def recvBuffer(sz, packetsz, packectr):
+	global seqNo
 	s.settimeout(1.5)
 	packets = [False] * packectr
 	packetfmt = "Qi4x" + str(packetsz) + "s"
