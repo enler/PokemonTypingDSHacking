@@ -26,6 +26,8 @@ void DC_FlushRange(const void *startAddr, u32 nBytes);
 
 void* FndAllocFromExpHeapEx(void* heap, u32 size, s32 align);
 void FndFreeToExpHeap(void* heap, void* ptr);
+void* malloc(u32 size);
+void free(void * ptr);
 
 //pxi interface
 typedef void (*PXIFifoCallback) (int tag, u32 data, bool err);
@@ -45,6 +47,7 @@ void OS_ExitThread(void);
 void OS_Sleep(u32 msec);
 
 void initArm7Payload();
+void startServer();
 
 // backup
 void jmp_writeBackup();
@@ -64,3 +67,8 @@ extern const int handleTouchDataOffset;
 extern const int GetInputOffset;
 
 #define MAKE_BRANCH(src, dest) (((((s32)(dest) - 8 - (s32)(src)) >> 2) & 0xFFFFFF) | 0xEA000000);
+
+extern int TouchState;
+extern int TouchXY;
+extern u16 inputCharacter;
+extern int inputState;

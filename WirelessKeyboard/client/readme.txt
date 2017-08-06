@@ -1,0 +1,1 @@
+client_win.py requires pyHook (https://pypi.python.org/pypi/pyHook) and pyPng (https://pypi.python.org/pypi/pypng)

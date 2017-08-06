@@ -46,7 +46,6 @@ u32 readBackup() {
 	u8 * backupCtx = *backupCtxRef;
 	for (int i = 0; i < 4; i++) {
 		void * buf = backupGetBuffer(backupCtx + i * 120 + 12, 0);
-		DC_FlushRange(buf, backupLength);
 		backupSharedMem[3] = i << 12;
 		backupSharedMem[4] = (int)buf;
 		backupSharedMem[5] = backupLength;
@@ -54,6 +53,7 @@ u32 readBackup() {
 		requestFlag = 0;
 		while(!sendBackupFifo(6));
 		do OS_Sleep(100); while(!requestFlag);
+		DC_InvalidateRange(buf, backupLength);
 	}
 	return ret;
 }
@@ -63,6 +63,7 @@ void writeBackup() {
 	int slot = backupCtx[480];
 	u8 * slotCtx = backupCtx + slot * 120;
 	void * buf = backupGetBuffer(slotCtx + 12, 0);
+	DC_FlushRange(buf, backupLength);
 	backupSharedMem[3] = (int)buf;
 	backupSharedMem[4] = slot << 12;
 	backupSharedMem[5] = backupLength;
@@ -70,7 +71,6 @@ void writeBackup() {
 	requestFlag = 0;
 	while(!sendBackupFifo(7));
 	do OS_Sleep(100); while(!requestFlag);
-	DC_InvalidateRange(&buf, backupLength);
 }
 
 int main() {

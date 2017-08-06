@@ -15,7 +15,7 @@ LIBS	=	../../lib
 SOURCE	=	source
 
 # define options for compilation
-CFLAGS = -std=c99 -Wall -Os -march=armv5te -mtune=arm946e-s -D=JPN -mthumb-interwork -fomit-frame-pointer -ffast-math -I $(INCLUDE)
+CFLAGS = -std=c99 -Wall -Os -march=armv5te -mtune=arm946e-s -D=JPN -D=ARM9 -mthumb-interwork -fomit-frame-pointer -ffast-math -I $(INCLUDE)
 
 
 # define options for linkage. Prevent the inclusion of standard start
@@ -27,8 +27,7 @@ LDFLAGS = -T $(CURDIR)/symbol.sym -T $(CURDIR)/linker.ld -nostartfiles -Wl,--gc-
 DUMPFLAGS = -xdsS
 
 # use variables to refer to init code in case it changes
-OBJS = $(SOURCE)/arm9.o $(SOURCE)/entry.o $(SOURCE)/arm7loader.o $(SOURCE)/common.o $(SOURCE)/backup.o
-
+OBJS = $(SOURCE)/arm9.o $(SOURCE)/entry.o $(SOURCE)/arm7loader.o $(SOURCE)/common.o $(SOURCE)/backup.o $(SOURCE)/server.o
 
 
 #
@@ -46,6 +45,9 @@ arm9.bin: $(OBJS)
 	$(OBJCOPY) -O binary arm9.elf arm9.bin
 
 # handle compilation of C files
+$(SOURCE)/server.o:$(SOURCE)/server.c
+	$(CC) $(CFLAGS) -mthumb -c $< -o $@
+
 $(SOURCE)/backup.o:$(SOURCE)/backup.c
 	$(CC) $(CFLAGS) -mthumb -c $< -o $@
 
