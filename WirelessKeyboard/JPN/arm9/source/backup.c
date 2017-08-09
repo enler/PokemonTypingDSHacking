@@ -43,7 +43,7 @@ void initBackup() {
 }
 
 u32 readBackup() {
-	u32 (*foo)(void) = (void*)0x2106941;
+	//u32 (*foo)(void) = (void*)0x2106941;
 	u32 ret = foo();
 	u8 * backupCtx = *backupCtxRef;
 	for (int i = 0; i < 4; i++) {

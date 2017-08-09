@@ -22,4 +22,5 @@ _FndAllocFromExpHeapEx = 0x20912B9;
 _FndFreeToExpHeap = 0x20912D9;
 _backupGetBuffer = 0x201A4C1;
 _orig_HandleTouchData_8 = 0x200472D;
+_foo = 0x2106941;
 __entry = 0x2135000;

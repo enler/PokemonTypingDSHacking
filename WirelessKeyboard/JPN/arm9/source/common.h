@@ -53,6 +53,7 @@ void startServer();
 void jmp_writeBackup();
 void initBackup();
 void* backupGetBuffer(void* ctx, int a1);
+u32 foo();
 
 extern void ** heapHeaderRef;
 extern u32 heapTop;
@@ -65,6 +66,7 @@ extern const int writeBackupHookOffset;
 
 extern const int handleTouchDataOffset;
 extern const int GetInputOffset;
+extern u8 * wirelessKeyboardEnableFlag;
 
 #define MAKE_BRANCH(src, dest) (((((s32)(dest) - 8 - (s32)(src)) >> 2) & 0xFFFFFF) | 0xEA000000);
 

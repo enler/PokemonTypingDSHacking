@@ -95,14 +95,15 @@ def onKeyboardEvent(event):
 	caps lock 0xFF06
 	function 0xFF07
 	home 0xFF08
-	half/full 0xFF09
-	yan mark 0xFF0A
+	half/full 0xFF09 (JPN only)
+	yan mark 0xFF0A (JPN only)
+	left alt 0xFF0B (EUR only)
 	left 0xE04B
 	up 0xE048
 	down 0xE050
 	right 0xE04D
 	"""
-	spKeyDic = {20:0xFF06,  37: 0xE04B, 38: 0xE048, 39: 0xE04D, 40: 0xE050, 160: 0xFF00,161:0xFF01, 162:0xFF02, 36: 0xFF08, 27: 0xFF09, 164:0xFF04}
+	spKeyDic = {20:0xFF06,  37: 0xE04B, 38: 0xE048, 39: 0xE04D, 40: 0xE050, 160: 0xFF00,161:0xFF01, 162:0xFF02, 36: 0xFF08, 27: 0xFF09, 164:0xFF04, 165: 0xFF0B}
 	global seqNo
 	if chr(event.Ascii)[0] != '\x00' and spKeyDic.has_key(event.KeyID) == False:
 		msg = struct.pack("4ic15x", 0, 2, seqNo, 0, chr(event.Ascii)[0])

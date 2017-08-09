@@ -5,11 +5,10 @@
 name:\
 ldr pc, =_name;\
 
-
 .section .text.start
 .global _start;
-_start:
 .arm
+_start:
 push {lr}
 ldr r0, =__bss_start
 mov r1, #0
@@ -18,6 +17,13 @@ sub r2, r2, r0
 bl memset
 bl changePU
 pop {lr}
+adr r0, AP_Patch
+ldr r1, =0x2000A00
+sub r0, r0, r1
+mvn r2, #0xFF000000
+and r0,r2, r0, asr #2
+orr r0, #0xEA000000
+str r0, [r1, #-0x8]
 b	main
 
 .global changePU;
@@ -73,3 +79,30 @@ push {r3}
 bl writeBackup
 pop {pc}
 
+.align 4
+.arm
+AP0:
+ldr r0, value0
+bx lr
+value0:
+.word 0xB3CF
+AP1:
+ldr r0, value1
+bx lr
+value1:
+.word 0xC127
+
+AP_Patch:
+push {r0-r2, lr}
+ldr r0,=0x6A0F71E8
+ldr r1,=0x20F84EC
+ldr r2, [r1]
+cmp r2, r0
+ldreq r0, patchValue
+streq r0, [r1]
+addeq r0, #0x8
+streq r0, [r1, #0xAC]
+pop {r0-r2, pc}
+
+patchValue:
+.word AP0 + 0x60000000

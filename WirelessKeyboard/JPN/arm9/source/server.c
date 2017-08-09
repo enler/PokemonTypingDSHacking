@@ -99,7 +99,7 @@ void HandlePacket(void * arg) {
 				switch(packet.type) {
 					case REQ_TOUCHPANEL:
 						if (TouchState == 0) {
-							*(u8*)0x20CD31F = 0;
+							*wirelessKeyboardEnableFlag = 0;
 							TouchXY = *(int*)&packet.data[0];
 							TouchState = 1;
 						}
@@ -109,7 +109,7 @@ void HandlePacket(void * arg) {
 						break;
 					case REQ_ASCII:
 						if (inputState == 0) {
-							*(u8*)0x20CD31F = 1;
+							*wirelessKeyboardEnableFlag = 1;
 							inputCharacter = *(u16*)&packet.data[0];
 							inputState = 1;
 						}
