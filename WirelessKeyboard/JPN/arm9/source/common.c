@@ -15,7 +15,7 @@ const int writeBackupHookOffset = 0x201953C;
 
 const int handleTouchDataOffset = 0x2004724;
 const int GetInputOffset = 0x205A1B8;
-const u8 * wirelessKeyboardEnableFlag = 0x20CD31F;
+u8 * wirelessKeyboardEnableFlag = 0x20CD31F;
 
 #endif
 
