@@ -9,16 +9,32 @@
 #include <string.h>
 
 #define BLOCK_SIZE 384
+#define DATA_BODY_SIZE 384
 #define SCREENSHOT_WIDTH 256
 #define SCREENSHOT_HEIGHT 192
 
-typedef struct _TPPacket {
-	int ver;
-	int type;
+typedef enum _TP_PACKET_TYPE {
+	TYPE_CMD = 0x43415054, //'TPAC'
+	TYPE_DATA = 0x44415054 //'TPAD'
+} TP_PACKET_TYPE;
+
+typedef struct _TPPacketHeader{
+	TP_PACKET_TYPE type;
 	int seqNo;
-	int reserved;
-	u8 data[16];
-} TPPacket;
+	union _common {
+		int cmd;
+		int index;
+	} common;
+	int bodySize;
+} TPPacketHeader;
+
+typedef struct _TPPacketCMD {
+	TPPacketHeader header;
+	union _data {
+		u32 req[4];
+		u32 resp[4];
+	} data;
+} TPPacketCMD;
 
 typedef enum _PACKET_TYPE {
 	REQ_TOUCHPANEL,
@@ -30,26 +46,26 @@ typedef enum _PACKET_TYPE {
 	REQ_START_SEND
 } PACKET_TYPE;
 
-void retryBuffer(int sock, u8* buffer, int sz, struct sockaddr_in * sock_in, int addr_len, int index) {
-	u8 tmp_buffer[16 + BLOCK_SIZE];
-	memset(tmp_buffer, 0, 16 + BLOCK_SIZE);
-	*(u32*)&tmp_buffer[0] = 0x89ABCDEF;
-	*(u32*)&tmp_buffer[4] = 0x01234567;
-	*(int*)&tmp_buffer[8] = index;
-	memcpy(&tmp_buffer[16], buffer + index * BLOCK_SIZE, sz - BLOCK_SIZE * index < BLOCK_SIZE ? sz - BLOCK_SIZE * index : BLOCK_SIZE);
+
+
+static inline void sendBufferByIndex(int sock, u8* buffer, int sz, struct sockaddr_in * sock_in, int addr_len, TPPacketHeader * header) {
+	int index = header->common.index;
+	u8 tmp_buffer[sizeof(TPPacketHeader) + DATA_BODY_SIZE];
+	memcpy(&tmp_buffer, header, sizeof(TPPacketHeader));
+	u8 * body = tmp_buffer + sizeof(TPPacketHeader);
+	memcpy(body, buffer + index * DATA_BODY_SIZE, sz - DATA_BODY_SIZE * index < DATA_BODY_SIZE ? sz - DATA_BODY_SIZE * index : DATA_BODY_SIZE);
 	sendto(sock, tmp_buffer, sizeof(tmp_buffer), 0, (const struct sockaddr*)sock_in, addr_len);
 }
 
-void sendBuffer(int sock, u8* buffer, int sz, struct sockaddr_in * sock_in, int addr_len) {
-	u8 tmp_buffer[16 + BLOCK_SIZE];
-	memset(tmp_buffer, 0, 16 + BLOCK_SIZE);
-	*(u32*)&tmp_buffer[0] = 0x89ABCDEF;
-	*(u32*)&tmp_buffer[4] = 0x01234567;
-	int packetCount = (sz + BLOCK_SIZE - 1) / BLOCK_SIZE;
+void sendBuffer(int sock, u8* buffer, int sz, struct sockaddr_in * sock_in, int addr_len, int seqNo) {
+	TPPacketHeader header;
+	header.type = TYPE_DATA;
+	header.seqNo = seqNo;
+	header.bodySize = DATA_BODY_SIZE;
+	int packetCount = (sz + DATA_BODY_SIZE - 1) / DATA_BODY_SIZE;
 	for (int i = 0; i < packetCount; i++) {
-		*(int*)&tmp_buffer[8] = i;
-		memcpy(&tmp_buffer[16], buffer + i * BLOCK_SIZE, sz - BLOCK_SIZE * i < BLOCK_SIZE ? sz - BLOCK_SIZE * i : BLOCK_SIZE);
-		sendto(sock, tmp_buffer, sizeof(tmp_buffer), 0, (const struct sockaddr*)sock_in, addr_len);
+		header.common.index = i;
+		sendBufferByIndex(sock, buffer, sz, sock_in, addr_len, &header);
 		OS_Sleep(10);
 		if (i != 0 && ((i & 0xFF) == 0))
 			OS_Sleep(1000);
@@ -79,43 +95,51 @@ void screenshot(u8* buffer) {
 }
 
 void HandlePacket(void * arg) {
-	int sock = *(int*)arg;
-	int curSeqNo, addr_len, dumpSize, index;
+	int sock, curSeqNo, addr_len, dumpSize, index;
 	u8 * snapshot,* offset;
-	TPPacket packet;
-	struct sockaddr_in sock_in;
+	TPPacketCMD packet;
+	struct sockaddr_in serv_addr, sock_in;
 	
-	curSeqNo = -1;
-	addr_len = dumpSize = 0;
-	snapshot = offset = (u8*)0;
+	if (!Wifi_InitDefault(1)) OS_ExitThread();
 	
-	memset(&packet, 0, sizeof(TPPacket));
-	memset(&sock_in, 0, sizeof(struct sockaddr_in));
+	sock = socket(AF_INET ,SOCK_DGRAM ,0);
 	
-	while(1) {
-		if (recvfrom(sock, &packet, sizeof(TPPacket), 0, (struct sockaddr*)&sock_in, &addr_len) >= 0) {
-			if (packet.seqNo != curSeqNo)
-			{
-				switch(packet.type) {
+	memset(&serv_addr, 0, sizeof(serv_addr));
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = INADDR_ANY;
+	serv_addr.sin_port = htons(818);
+	
+	if (sock >= 0 && bind(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) >= 0) {
+		curSeqNo = -1;
+		addr_len = dumpSize = 0;
+		snapshot = offset = (u8*)0;
+	
+		memset(&packet, 0, sizeof(TPPacketCMD));
+		memset(&sock_in, 0, sizeof(struct sockaddr_in));
+	
+		while(1) {
+			if (recvfrom(sock, &packet, sizeof(TPPacketCMD), 0, (struct sockaddr*)&sock_in, &addr_len) >= 0) {
+				if (packet.header.type != TYPE_CMD || packet.header.bodySize != sizeof(packet.data)) continue;//invalid packet
+				if (packet.header.seqNo != curSeqNo) {
+					curSeqNo = packet.header.seqNo;
+					switch(packet.header.common.cmd) {
 					case REQ_TOUCHPANEL:
 						if (TouchState == 0) {
 							*wirelessKeyboardEnableFlag = 0;
-							TouchXY = *(int*)&packet.data[0];
+							TouchXY = (int)packet.data.req[0];
 							TouchState = 1;
 						}
-						curSeqNo = packet.seqNo;
-						packet.type = REQ_ACK;
-						sendto(sock, &packet, sizeof(TPPacket), 0, (const struct sockaddr*)&sock_in, addr_len);
+						packet.header.common.cmd = REQ_ACK;
+						sendto(sock, &packet, sizeof(TPPacketCMD), 0, (const struct sockaddr*)&sock_in, addr_len);
 						break;
 					case REQ_ASCII:
 						if (inputState == 0) {
 							*wirelessKeyboardEnableFlag = 1;
-							inputCharacter = *(u16*)&packet.data[0];
+							inputCharacter = (u16)packet.data.req[0];
 							inputState = 1;
 						}
-						curSeqNo = packet.seqNo;
-						packet.type = REQ_ACK;
-						sendto(sock, &packet, sizeof(TPPacket), 0, (const struct sockaddr*)&sock_in, addr_len);
+						packet.header.common.cmd = REQ_ACK;
+						sendto(sock, &packet, sizeof(TPPacketCMD), 0, (const struct sockaddr*)&sock_in, addr_len);
 						break;
 					case REQ_CAPTURE:
 						if (snapshot) free(snapshot);
@@ -123,28 +147,30 @@ void HandlePacket(void * arg) {
 						snapshot = (u8*)FndAllocFromExpHeapEx(*heapHeaderRef, dumpSize, -0x10);
 						if (snapshot) {
 							screenshot(snapshot);
-							packet.type = REQ_ACK;
-							*(int*)&packet.data[0] = dumpSize;
-							*(int*)&packet.data[4] = dumpSize / BLOCK_SIZE;
-							*(int*)&packet.data[8] = BLOCK_SIZE;
-							sendto(sock, &packet, sizeof(TPPacket), 0, (const struct sockaddr*)&sock_in, addr_len);
+							packet.header.common.cmd = REQ_ACK;
+							packet.data.resp[0] = dumpSize;
+							packet.data.resp[1] = dumpSize / BLOCK_SIZE;
+							packet.data.resp[2] = BLOCK_SIZE;
+							sendto(sock, &packet, sizeof(TPPacketCMD), 0, (const struct sockaddr*)&sock_in, addr_len);
 						}
 						else {
-							packet.type = REQ_ACK;
+							packet.header.common.cmd = REQ_ACK;
 							memset(&packet.data, 0, sizeof(packet.data));
-							sendto(sock, &packet, sizeof(TPPacket), 0, (const struct sockaddr*)&sock_in, addr_len);
+							sendto(sock, &packet, sizeof(TPPacketCMD), 0, (const struct sockaddr*)&sock_in, addr_len);
 						}
-						curSeqNo = packet.seqNo;
 						break;
 					case REQ_START_SEND:
 						if (snapshot && dumpSize) {
-							sendBuffer(sock, snapshot, dumpSize, &sock_in, addr_len);
+							sendBuffer(sock, snapshot, dumpSize, &sock_in, addr_len, curSeqNo);
 						}
 						break;
 					case REQ_RETRY:
 						if (snapshot && dumpSize) {
-							index = *(int*)&packet.data[0];
-							retryBuffer(sock, snapshot, dumpSize, &sock_in, addr_len, index);
+							index = (int)packet.data.req[0];
+							packet.header.type = TYPE_DATA;
+							packet.header.common.index = index;
+							packet.header.bodySize = DATA_BODY_SIZE;
+							sendBufferByIndex(sock, snapshot, dumpSize, &sock_in, addr_len, &packet.header);
 						}
 						break;
 					case REQ_CAPTURE_DONE:
@@ -153,14 +179,15 @@ void HandlePacket(void * arg) {
 							snapshot = (u8*)0;
 						}
 						if (dumpSize) dumpSize = 0;
-						packet.type = REQ_ACK;
-						sendto(sock, &packet, sizeof(TPPacket), 0, (const struct sockaddr*)&sock_in, addr_len);
+						packet.header.common.cmd = REQ_ACK;
+						sendto(sock, &packet, sizeof(TPPacketCMD), 0, (const struct sockaddr*)&sock_in, addr_len);
 						break;
+					}
 				}
-			}
-			else {
-				packet.type = REQ_ACK;//only send ack packet
-				sendto(sock, &packet, sizeof(TPPacket), 0, (const struct sockaddr*)&sock_in, addr_len);
+				else {
+					packet.header.common.cmd = REQ_ACK;//only send ack packet
+					sendto(sock, &packet, sizeof(TPPacketCMD), 0, (const struct sockaddr*)&sock_in, addr_len);
+				}
 			}
 		}
 	}
@@ -168,23 +195,8 @@ void HandlePacket(void * arg) {
 }
 
 void startServer() {
-	if (Wifi_InitDefault(1)) {
-		int sock = socket(AF_INET ,SOCK_DGRAM ,0);
-		if (sock >= 0) {
-			static struct sockaddr_in serv_addr;
-			static OSThread backboardThread;
-			memset(&serv_addr, 0, sizeof(serv_addr));
-			serv_addr.sin_family = AF_INET;
-			serv_addr.sin_addr.s_addr = INADDR_ANY;
-			serv_addr.sin_port = htons(818);
-			if (bind(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) >= 0) {
-				static u8 stack[0x1000];
-				static int args[1];
-				args[0] = sock;
-				OS_CreateThread(&backboardThread, HandlePacket, (void*)&args, stack + 0x1000, 0x1000, 8);
-				OS_WakeupThreadDirect(&backboardThread);
-			}
-		}
-	}
-	else while(1);
+	static OSThread backboardThread;
+	static u8 stack[0x1000];
+	OS_CreateThread(&backboardThread, HandlePacket, (void*)0, stack + 0x1000, 0x1000, 8);
+	OS_WakeupThreadDirect(&backboardThread);
 }

@@ -15,7 +15,7 @@ LIBS	=	../../lib
 SOURCE	=	../../JPN/arm9/source
 
 # define options for compilation
-CFLAGS = -std=c99 -Wall -Os -march=armv5te -mtune=arm946e-s -D=EUR -D=ARM9 -mthumb-interwork -fomit-frame-pointer -ffast-math -I $(INCLUDE)
+CFLAGS = -std=c99 -Wall -Os -march=armv5te -mtune=arm946e-s -D=ITA -D=ARM9 -mthumb-interwork -fomit-frame-pointer -ffast-math -I $(INCLUDE)
 
 
 # define options for linkage. Prevent the inclusion of standard start

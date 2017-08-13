@@ -15,7 +15,7 @@ LIBS	=	../../lib
 SOURCE	=	../../JPN/arm9/source
 
 # define options for compilation
-CFLAGS = -std=c99 -Wall -Os -march=armv5te -mtune=arm946e-s -D=EUR -D=ARM9 -mthumb-interwork -fomit-frame-pointer -ffast-math -I $(INCLUDE)
+CFLAGS = -std=c99 -Wall -Os -march=armv5te -mtune=arm946e-s -D=GER -D=ARM9 -mthumb-interwork -fomit-frame-pointer -ffast-math -I $(INCLUDE)
 
 
 # define options for linkage. Prevent the inclusion of standard start
@@ -33,7 +33,7 @@ OBJS = $(SOURCE)/arm9.o entry.o $(SOURCE)/arm7loader.o $(SOURCE)/common.o $(SOUR
 #
 # define build targets
 #
-all: 
+all:
 	touch $(SOURCE)/common.c $(SOURCE)/arm9.c
 	make arm9.bin
 

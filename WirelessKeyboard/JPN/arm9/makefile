@@ -33,7 +33,9 @@ OBJS = $(SOURCE)/arm9.o $(SOURCE)/entry.o $(SOURCE)/arm7loader.o $(SOURCE)/commo
 #
 # define build targets
 #
-all: arm9.bin
+all: 
+	touch $(SOURCE)/common.c $(SOURCE)/arm9.c
+	make arm9.bin
 
 clean:
 	rm -f *.o *.elf *.bin *.dump $(SOURCE)/*.o

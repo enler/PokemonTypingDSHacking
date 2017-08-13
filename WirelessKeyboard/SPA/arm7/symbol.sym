@@ -1,0 +1,10 @@
+_PXI_SendWordByFifo = 0x037FEC51;
+_PXI_SetFifoRecvCallback = 0x037FEBD9;
+OS_DisableIrqMask = 0x037FBE0C;
+OS_EnableIrqMask = 0x037FBDD4;
+OS_SetIrqFunction = 0x037FBCA4;
+FLASH_DirectRead = 0x027F58A0;
+_Ven__SVC_WaitByLoop = 0x037FBF70;
+RtcPxiCallback = 0x27E02A4;
+OSi_IrqVBlank = 0x37FBC30;
+__entry = 0x252c280;

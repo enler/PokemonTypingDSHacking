@@ -10,7 +10,7 @@ bool FS_OpenFile(FSFile *p_file, const char *path);
 
 static inline u32 FS_GetLength(const FSFile *p_file)
 {
-    return *(u32*)&p_file->data[0x28] - *(u32*)&p_file->data[0x24];
+    return *(u32*)(p_file->data + 0x28) - *(u32*)(p_file->data + 0x24);
 }
 
 s32 FS_ReadFile(FSFile *p_file, void *dst, s32 len);
@@ -52,13 +52,14 @@ void startServer();
 // backup
 void jmp_writeBackup();
 void initBackup();
-void* backupGetBuffer(void* ctx, int a1);
+void* backupGetBuffer(const void* ctx, int a1);
 u32 foo();
 
 extern void ** heapHeaderRef;
 extern u32 heapTop;
 
 extern u32 PxiRtcCallback7;
+extern const char * arm7BinPath;
 
 extern const u8** backupCtxRef;
 extern const int readBackupHookOffset;

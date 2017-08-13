@@ -43,9 +43,8 @@ void initBackup() {
 }
 
 u32 readBackup() {
-	//u32 (*foo)(void) = (void*)0x2106941;
 	u32 ret = foo();
-	u8 * backupCtx = *backupCtxRef;
+	const u8 * backupCtx = *backupCtxRef;
 	for (int i = 0; i < 4; i++) {
 		void * buf = backupGetBuffer(backupCtx + i * 120 + 12, 0);
 		backupSharedMem[3] = i << 12;
@@ -61,9 +60,9 @@ u32 readBackup() {
 }
 
 void writeBackup() {
-	u8 * backupCtx = *backupCtxRef;
+	const u8 * backupCtx = *backupCtxRef;
 	int slot = backupCtx[480];
-	u8 * slotCtx = backupCtx + slot * 120;
+	const u8 * slotCtx = backupCtx + slot * 120;
 	void * buf = backupGetBuffer(slotCtx + 12, 0);
 	DC_FlushRange(buf, backupLength);
 	backupSharedMem[3] = (int)buf;

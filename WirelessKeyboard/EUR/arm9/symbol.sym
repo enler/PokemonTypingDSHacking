@@ -23,4 +23,6 @@ _FndFreeToExpHeap = 0x208F8E9;
 _backupGetBuffer = 0x201A5B9;
 _orig_HandleTouchData_8 = 0x2004781;
 _foo = 0x21019C1;
+backupCtxRef = 0x2002B80;
+wirelessKeyboardEnableFlag = 0x200897C;
 __entry = 0x2130800;

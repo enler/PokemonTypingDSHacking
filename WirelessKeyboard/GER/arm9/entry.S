@@ -94,8 +94,8 @@ value1:
 
 AP_Patch:
 push {r0-r2, lr}
-ldr r0,=0x6A0F71E8
-ldr r1,=0x20F84EC
+ldr r0,=0x6A0F72A8
+ldr r1,=0x20F85AC
 ldr r2, [r1]
 cmp r2, r0
 ldreq r0, patchValue
