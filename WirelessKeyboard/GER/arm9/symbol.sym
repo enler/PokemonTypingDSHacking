@@ -23,4 +23,6 @@ _FndFreeToExpHeap = 0x208F97D;
 _FndAllocFromExpHeapEx = 0x208F95D;
 _FS_InitFile = 0x2094F25;
 _OS_WakeupThreadDirect = 0x2099C21;
+AP_CheckValue = 0x6A0F72A8;
+AP_CheckPoint = 0x20F85AC;
 __entry = 0x2130400;

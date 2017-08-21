@@ -25,4 +25,6 @@ _orig_HandleTouchData_8 = 0x2004781;
 _foo = 0x21019C1;
 backupCtxRef = 0x2002B80;
 wirelessKeyboardEnableFlag = 0x200897C;
+AP_CheckValue = 0x6A0F71E8;
+AP_CheckPoint = 0x20F84EC;
 __entry = 0x2130800;

@@ -27,14 +27,14 @@ LDFLAGS = -T $(CURDIR)/symbol.sym -T ../../JPN/arm9/linker.ld -nostartfiles -Wl,
 DUMPFLAGS = -xdsS
 
 # use variables to refer to init code in case it changes
-OBJS = $(SOURCE)/arm9.o entry.o $(SOURCE)/arm7loader.o $(SOURCE)/common.o $(SOURCE)/backup.o $(SOURCE)/server.o
+OBJS = $(SOURCE)/arm9.o $(SOURCE)/entry.o $(SOURCE)/arm7loader.o $(SOURCE)/common.o $(SOURCE)/backup.o $(SOURCE)/server.o
 
 
 #
 # define build targets
 #
 all: 
-	touch $(SOURCE)/common.c $(SOURCE)/arm9.c
+	touch $(SOURCE)/common.c $(SOURCE)/arm9.c $(SOURCE)/entry.S
 	make arm9.bin
 
 clean:
