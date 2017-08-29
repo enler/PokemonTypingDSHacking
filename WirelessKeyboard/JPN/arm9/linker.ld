@@ -8,8 +8,8 @@ SECTIONS
   . = __entry;
   .text.start : { *(.text.start ) }
   .text       : { *(.text*) }
-  .rodata     : { *(.rodata) }
-  .data       : { *(.data) }
+  .rodata     : { *(.rodata*) }
+  .data       : { *(.data*) }
   __bss_start = .;
   .bss        : { *(.bss*) }
   _end = .;

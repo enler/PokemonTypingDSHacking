@@ -1,5 +1,5 @@
 ifeq ($(strip $(DEVKITARM)),)
-$(error "«ÎΩ´DEVKITARMÃÌº”µΩª∑æ≥±‰¡ø")
+$(error "ËØ∑Â∞ÜDEVKITARMÊ∑ªÂä†Âà∞ÁéØÂ¢ÉÂèòÈáè")
 endif
 
 PREFIX = $(DEVKITARM)/bin/arm-none-eabi-
@@ -11,27 +11,32 @@ OBJDUMP = $(PREFIX)objdump
 
 INCLUDE = $(DEVKITPRO)/libnds/include
 
+SOURCE	=	../../../WirelessKeyboard/JPN/arm9/source
+
 # define options for compilation
-CFLAGS = -std=c99 -Wall -Os -march=armv5te -mtune=arm946e-s -D=JPN -mthumb -mthumb-interwork -fomit-frame-pointer -ffast-math -I $(INCLUDE)
+CFLAGS = -std=c99 -Wall -Os -march=armv5te -mtune=arm946e-s -D=JPN -D=NO_NETWORKING -D=ARM9 -ffunction-sections -fdata-sections -mthumb -mthumb-interwork -fomit-frame-pointer -ffast-math -I $(INCLUDE)
+
 
 # define options for linkage. Prevent the inclusion of standard start
 # code and libraries.
-LDFLAGS = -T symbol.sym -T linker.ld -nostartfiles -Wl,--gc-sections,--use-blx
+LDFLAGS = -T $(CURDIR)/symbol.sym -T ../../../WirelessKeyboard/JPN/arm9/linker.ld -nostartfiles -Wl,--gc-sections,--use-blx
 
 
 # define options for the objdump
 DUMPFLAGS = -xdsS
 
 # use variables to refer to init code in case it changes
-OBJS = arm9.o entry.o
+OBJS = $(SOURCE)/arm9.o $(SOURCE)/entry.o $(SOURCE)/common.o $(SOURCE)/backup.o
 
 #
 # define build targets
 #
-all: arm9.bin
+all: 
+	touch $(SOURCE)/common.c $(SOURCE)/arm9.c $(SOURCE)/entry.S
+	make arm9.bin
 
 clean:
-	rm -f *.o *.elf *.bin *.dump
+	rm -f *.o *.elf *.bin *.dump $(SOURCE)/*.o
 
 
 # build s-record with init code and c files linked together

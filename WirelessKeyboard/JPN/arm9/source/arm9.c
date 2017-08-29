@@ -77,8 +77,8 @@ u32 hook_GetInput(void * ctx) {
 
 int main() {
 	initBackup();
-	initArm7Payload();
 #ifndef NO_NETWORKING
+	initArm7Payload();
 	*(u32*)handleTouchDataOffset = 0x46C04778;
 	*(u32*)(handleTouchDataOffset + 4) = MAKE_BRANCH(handleTouchDataOffset + 4, hook_HandleTouchData);
 	*(u32*)GetInputOffset = 0x46C04778;

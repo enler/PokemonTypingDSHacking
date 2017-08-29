@@ -1,4 +1,5 @@
 #define STUB_FUNC_THUMB(name)\
+.section .text.##name;\
 .global name;\
 .type name, %function;\
 .code 32;\
@@ -16,7 +17,9 @@ _start:
 	ldr r2, =_end
 	sub r2, r2, r0
 	bl memset
+#ifndef NO_NETWORKING
 	bl changePU
+#endif
 	pop {lr}
 #ifndef JPN
 	adr r0, AP_Patch
@@ -29,6 +32,7 @@ _start:
 #endif
 	b	main
 
+.section .text.changePU
 .global changePU;
 .type changePU, %function;
 .arm
@@ -63,7 +67,7 @@ STUB_FUNC_THUMB(FndFreeToExpHeap)
 STUB_FUNC_THUMB(backupGetBuffer)
 STUB_FUNC_THUMB(foo)
 
-
+.section .text.orig_HandleTouchData
 .global orig_HandleTouchData;
 .type orig_HandleTouchData, %function;
 .arm
@@ -74,6 +78,7 @@ orig_HandleTouchData:
 	MOVS R6, #0
 	ldr pc, =_orig_HandleTouchData_8
 
+.section .text.jmp_writeBackup
 .global jmp_writeBackup
 .type jmp_writeBackup, %function;
 .thumb

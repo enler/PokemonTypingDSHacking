@@ -3,12 +3,12 @@
 #include "nds/arm9/video.h"
 #include "common.h"
 #include <dswifi9.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <string.h>
 
-#define BLOCK_SIZE 384
 #define DATA_BODY_SIZE 384
 #define SCREENSHOT_WIDTH 256
 #define SCREENSHOT_HEIGHT 192
@@ -149,8 +149,8 @@ void HandlePacket(void * arg) {
 							screenshot(snapshot);
 							packet.header.common.cmd = REQ_ACK;
 							packet.data.resp[0] = dumpSize;
-							packet.data.resp[1] = dumpSize / BLOCK_SIZE;
-							packet.data.resp[2] = BLOCK_SIZE;
+							packet.data.resp[1] = dumpSize / DATA_BODY_SIZE;
+							packet.data.resp[2] = DATA_BODY_SIZE;
 							sendto(sock, &packet, sizeof(TPPacketCMD), 0, (const struct sockaddr*)&sock_in, addr_len);
 						}
 						else {
