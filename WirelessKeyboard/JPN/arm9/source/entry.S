@@ -32,6 +32,36 @@ _start:
 #endif
 	b	main
 
+#ifndef JPN
+AP0:
+	ldr r0, value0
+	bx lr
+value0:
+	.word 0xB3CF
+
+AP1:
+	ldr r0, value1
+	bx lr
+value1:
+	.word 0xC127
+
+AP_Patch:
+	push {r0-r2, lr}
+	ldr r0,=AP_CheckValue
+	ldr r1,=AP_CheckPoint
+	ldr r2, [r1]
+	cmp r2, r0
+	ldreq r0, patchValue
+	streq r0, [r1]
+	addeq r0, #0xC
+	streq r0, [r1, #0xAC]
+	pop {r0-r2, pc}
+
+patchValue:
+	.word AP0 + 0x60000000
+
+#endif
+
 .section .text.changePU
 .global changePU;
 .type changePU, %function;
@@ -87,34 +117,3 @@ jmp_writeBackup:
 	bl writeBackup
 	pop {pc}
 
-#ifndef JPN
-
-.align 4
-.arm
-AP0:
-	ldr r0, value0
-	bx lr
-value0:
-	.word 0xB3CF
-AP1:
-	ldr r0, value1
-	bx lr
-value1:
-	.word 0xC127
-
-AP_Patch:
-	push {r0-r2, lr}
-	ldr r0,=AP_CheckValue
-	ldr r1,=AP_CheckPoint
-	ldr r2, [r1]
-	cmp r2, r0
-	ldreq r0, patchValue
-	streq r0, [r1]
-	addeq r0, #0xC
-	streq r0, [r1, #0xAC]
-	pop {r0-r2, pc}
-
-patchValue:
-	.word AP0 + 0x60000000
-
-#endif
